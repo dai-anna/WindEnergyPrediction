@@ -3,7 +3,7 @@ IDS721 Final Project
 
 
 ## Architectural Diagram
-![Arch drawio](https://user-images.githubusercontent.com/22479437/161459695-0a7834c5-f8ff-45aa-b13d-7badee6dc122.png)
+![Arch](https://user-images.githubusercontent.com/89488845/161461000-8d53832b-e99c-447e-bcda-0d3e9f7292ed.png)
 
 
 ## References
