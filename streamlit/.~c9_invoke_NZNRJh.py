@@ -4,9 +4,10 @@ import datetime
 import time
 import pandas as pd
 import json
+import plotly.express as px
 import boto3
 import numpy as np
-import pydeck as pdk
+import matplotlib.pyplot as plt
 
 city_df = pd.read_csv('city.csv')
 
@@ -57,7 +58,6 @@ def main():
     page = st.sidebar.selectbox(
         "Select a Page",
         [
-            "Wind Mill N:0",
             "Wind Mill N:1",
             "Wind Mill N:2",
             "Wind Mill N:3",
@@ -77,6 +77,7 @@ def main():
             "Wind Mill N:17",
             "Wind Mill N:18",
             "Wind Mill N:19",
+            "Wind Mill N:20",
             
         ]
     )
@@ -355,64 +356,35 @@ choices     = [ "high", 'medium', 'low' ]
 city_df["category"] = np.select(conditions, choices, default=np.nan)
 
 
+st.dataframe(city_df[['City','exp_total']])
+
 
 # Multiselect to choose a subset of crimes to show in the map
-enrgy_class = st.multiselect('Select the category you\'d like to filter by',
+enrgy_class = st.multiselect('Select the list of crimes you\'d like to filter by',
                             list(city_df.category.unique()), list(city_df.category.unique()))
 
 
 # # Streamlit's integration with DeckGL. 
 
 
+
 # Adding code so we can have map default to the center of the data
 midpoint = (np.average(city_df['latitude']), np.average(city_df['longitude']))
 
-# st.deck_gl_chart(
-#             viewport={
-#                 'latitude': midpoint[0],
-#                 'longitude':  midpoint[1],
-#                 'zoom': 4
-#             },
-#             layers=[{
-#                 'type': 'ScatterplotLayer',
-#                 'data': city_df[city_df['category'].isin(enrgy_class)],
-#                 'radiusScale': 100,
-#                 'radiusMinPixels': 5,
-#                 'getFillColor': [0, 255, 0, 255],
-                
-#             }]
-#             )
-            
-st.pydeck_chart(pdk.Deck(
-     map_style='mapbox://styles/mapbox/light-v9',
-     initial_view_state=pdk.ViewState(
-         latitude=midpoint[0],
-         longitude=midpoint[1],
-         zoom=8,
-         pitch=150,
-     ),
-     layers=[
-         pdk.Layer(
-            'HexagonLayer',
-            data=city_df[city_df['category'].isin(enrgy_class)],
-            get_position='[longitude, latitude]',
-            radius=10000,
-            elevation_scale=4,
-            elevation_range=[0, 1000],
-            pickable=True,
-            extruded=True,
-         ),
-         pdk.Layer(
-             'ScatterplotLayer',
-             data=city_df[city_df['category'].isin(enrgy_class)],
-             get_position='[longitude, latitude]',
-             get_color=[200, 30, 0, 160],
-             get_radius=10000,
-         ),
-     ],
- ))
-
-st.table(city_df[city_df['category'].isin(enrgy_class)][['City','exp_total']])
+st.deck_gl_chart(
+            viewport={
+                'latitude': midpoint[0],
+                'longitude':  midpoint[1],
+                'zoom': 4
+            },
+            layers=[{
+                'type': 'ScatterplotLayer',
+                'data': city_df[city_df['category'].isin(enrgy_class)],
+                'radiusScale': 100,
+                'radiusMinPixels': 5,
+                'getFillColor': [0, 255, 0, 255],
+            }]
+        )
 
 # Number of Days
 

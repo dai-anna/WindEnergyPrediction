@@ -4,11 +4,10 @@ import datetime
 import time
 import pandas as pd
 import json
+import plotly.express as px
 import boto3
 import numpy as np
-import pydeck as pdk
-
-city_df = pd.read_csv('city.csv')
+import matplotlib.pyplot as plt
 
 client = boto3.client('s3')
 result = client.get_object(Bucket="sagemaker-us-east-1-118600533013", Key="wind-notebook/data/batch-prediction/test.json.out")
@@ -24,7 +23,7 @@ data_p = csvcontent.split("}")
 
 lst_data = []
 
-for i in list(range(0, 40, 2)):
+for i in list(range(0, 11, 2)):
     temp = data_p[i]+'}}'
     lst_data.append(json.loads(temp)['mean'])
     # d = data_p[0]+'}}'
@@ -57,7 +56,6 @@ def main():
     page = st.sidebar.selectbox(
         "Select a Page",
         [
-            "Wind Mill N:0",
             "Wind Mill N:1",
             "Wind Mill N:2",
             "Wind Mill N:3",
@@ -77,6 +75,7 @@ def main():
             "Wind Mill N:17",
             "Wind Mill N:18",
             "Wind Mill N:19",
+            "Wind Mill N:20",
             
         ]
     )
@@ -338,82 +337,6 @@ def wind_mill_20():
     # tot = tot.append(id_1, ignore_index=True)
     st.line_chart(lst_data[19][:hours_to_predict])
 
-# Total expected energy for requested timeframe
-expected_total = []
-
-for i in lst_data:
-   expected_total.append(sum(i[:hours_to_predict]))
-   
-city_df['exp_total'] = expected_total
-
-
-col         = 'exp_total'
-threshold = city_df[col].mean()
-conditions  = [ city_df[col] >= threshold, (city_df[col] < threshold) & (city_df[col]> threshold/2), city_df[col] <= threshold/2 ]
-choices     = [ "high", 'medium', 'low' ]
-    
-city_df["category"] = np.select(conditions, choices, default=np.nan)
-
-
-
-# Multiselect to choose a subset of crimes to show in the map
-enrgy_class = st.multiselect('Select the category you\'d like to filter by',
-                            list(city_df.category.unique()), list(city_df.category.unique()))
-
-
-# # Streamlit's integration with DeckGL. 
-
-
-# Adding code so we can have map default to the center of the data
-midpoint = (np.average(city_df['latitude']), np.average(city_df['longitude']))
-
-# st.deck_gl_chart(
-#             viewport={
-#                 'latitude': midpoint[0],
-#                 'longitude':  midpoint[1],
-#                 'zoom': 4
-#             },
-#             layers=[{
-#                 'type': 'ScatterplotLayer',
-#                 'data': city_df[city_df['category'].isin(enrgy_class)],
-#                 'radiusScale': 100,
-#                 'radiusMinPixels': 5,
-#                 'getFillColor': [0, 255, 0, 255],
-                
-#             }]
-#             )
-            
-st.pydeck_chart(pdk.Deck(
-     map_style='mapbox://styles/mapbox/light-v9',
-     initial_view_state=pdk.ViewState(
-         latitude=midpoint[0],
-         longitude=midpoint[1],
-         zoom=8,
-         pitch=150,
-     ),
-     layers=[
-         pdk.Layer(
-            'HexagonLayer',
-            data=city_df[city_df['category'].isin(enrgy_class)],
-            get_position='[longitude, latitude]',
-            radius=10000,
-            elevation_scale=4,
-            elevation_range=[0, 1000],
-            pickable=True,
-            extruded=True,
-         ),
-         pdk.Layer(
-             'ScatterplotLayer',
-             data=city_df[city_df['category'].isin(enrgy_class)],
-             get_position='[longitude, latitude]',
-             get_color=[200, 30, 0, 160],
-             get_radius=10000,
-         ),
-     ],
- ))
-
-st.table(city_df[city_df['category'].isin(enrgy_class)][['City','exp_total']])
-
 # Number of Days
 
 number_of_days = [1,2,3,4,5] 
@@ -421,7 +344,7 @@ days = st.sidebar.selectbox('Number of Days to Forcast Weather', number_of_days)
 
 # Location
 
-location_name = list(city_df['City'])
+location_name = ['Ilfracombe','Ilkeston','Barnard Castle','Basingstoke']
 location = st.sidebar.selectbox('Name of Location', location_name) # Select currency
 
 # Get Data
